@@ -8,6 +8,8 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 
 @Service
 public class TareaService {
@@ -59,5 +61,9 @@ public class TareaService {
     public Tarea obtenerPorId(Long id) {
         return repository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Tarea no encontrada")); // Esto activará el error 404 si no existe [cite: 151]
+    }
+
+    public Page<Tarea> listarPaginado(int page, int size) {
+        return repository.findAll(PageRequest.of(page, size));
     }
 }

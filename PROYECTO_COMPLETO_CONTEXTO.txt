@@ -1,0 +1,452 @@
+
+================================================================================
+RUTA DEL ARCHIVO: pom.xml
+================================================================================
+
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-parent</artifactId>
+		<version>4.0.6</version>
+		<relativePath/> <!-- lookup parent from repository -->
+	</parent>
+	<groupId>com.example</groupId>
+	<artifactId>lab1mvc</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<name/>
+	<description/>
+	<url/>
+	<licenses>
+		<license/>
+	</licenses>
+	<developers>
+		<developer/>
+	</developers>
+	<scm>
+		<connection/>
+		<developerConnection/>
+		<tag/>
+		<url/>
+	</scm>
+	<properties>
+		<java.version>25</java.version>
+	</properties>
+	<dependencies>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-h2console</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-validation</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-jpa</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-webmvc</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>com.h2database</groupId>
+			<artifactId>h2</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.postgresql</groupId>
+			<artifactId>postgresql</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-jpa-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-webmvc-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+		</plugins>
+	</build>
+
+</project>
+
+
+
+================================================================================
+RUTA DEL ARCHIVO: src\main\java\com\example\lab1mvc\Lab1mvcApplication.java
+================================================================================
+
+package com.example.lab1mvc;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+public class Lab1mvcApplication {
+
+	public static void main(String[] args) {
+		SpringApplication.run(Lab1mvcApplication.class, args);
+	}
+
+}
+
+
+
+================================================================================
+RUTA DEL ARCHIVO: src\main\java\com\example\lab1mvc\controller\TareaController.java
+================================================================================
+
+package com.example.lab1mvc.controller;
+
+import com.example.lab1mvc.dto.TareaDTO;
+import com.example.lab1mvc.model.Tarea;
+import com.example.lab1mvc.service.TareaService;
+import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/tareas")
+public class TareaController {
+
+    @Autowired
+    private TareaService service;
+
+    @GetMapping
+    public List<Tarea> listar() {
+        return service.listarTodas();
+    }
+
+    @PostMapping
+    public ResponseEntity<Tarea> crear(@Valid @RequestBody TareaDTO dto) {
+        Tarea nuevaTarea = service.crearTarea(dto);
+        return new ResponseEntity<>(nuevaTarea, HttpStatus.CREATED);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Tarea> actualizar(@PathVariable Long id, @Valid @RequestBody TareaDTO dto) {
+        return ResponseEntity.ok(service.actualizar(id, dto));
+    }
+
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void eliminar(@PathVariable Long id) {
+        service.eliminar(id);
+    }
+
+    @GetMapping("/filtrar")
+    public List<Tarea> filtrarPorEstado(@RequestParam String estado) {
+        return service.buscarPorEstado(estado);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<Tarea> obtenerPorId(@PathVariable Long id) {
+        return ResponseEntity.ok(service.obtenerPorId(id));
+    }
+
+
+}
+
+
+================================================================================
+RUTA DEL ARCHIVO: src\main\java\com\example\lab1mvc\dto\TareaDTO.java
+================================================================================
+
+package com.example.lab1mvc.dto;
+
+import jakarta.validation.constraints.*;
+
+public class TareaDTO {
+    @NotBlank(message = "El título no puede estar vacío")
+    private String titulo;
+
+    @Size(min = 10, message = "La descripción debe ser más larga")
+    private String descripcion;
+
+    @NotBlank
+    private String estado;
+
+    @Min(1) @Max(5)
+    private Integer prioridad;
+
+
+    public String getTitulo() {
+        return titulo;
+    }
+
+    public void setTitulo(String titulo) {
+        this.titulo = titulo;
+    }
+
+    public String getDescripcion() {
+        return descripcion;
+    }
+
+    public void setDescripcion(String descripcion) {
+        this.descripcion = descripcion;
+    }
+
+    public String getEstado() {
+        return estado;
+    }
+
+    public void setEstado(String estado) {
+        this.estado = estado;
+    }
+
+    public Integer getPrioridad() {
+        return prioridad;
+    }
+
+    public void setPrioridad(Integer prioridad) {
+        this.prioridad = prioridad;
+    }
+}
+
+
+================================================================================
+RUTA DEL ARCHIVO: src\main\java\com\example\lab1mvc\exception\GlobalExceptionHandler.java
+================================================================================
+
+package com.example.lab1mvc.exception;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+
+import java.util.HashMap;
+import java.util.Map;
+
+@ControllerAdvice
+public class GlobalExceptionHandler {
+
+    // Maneja errores de validación del DTO (400 Bad Request)
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<Map<String, String>> handleValidationExceptions(MethodArgumentNotValidException ex) {
+        Map<String, String> errors = new HashMap<>();
+        ex.getBindingResult().getFieldErrors().forEach(error ->
+                errors.put(error.getField(), error.getDefaultMessage()));
+        return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
+    }
+
+    // Maneja errores generales (500 Internal Server Error)
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<String> handleGlobalException(Exception ex) {
+        return new ResponseEntity<>("Error interno: " + ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+}
+
+
+================================================================================
+RUTA DEL ARCHIVO: src\main\java\com\example\lab1mvc\model\Tarea.java
+================================================================================
+
+package com.example.lab1mvc.model;
+
+import jakarta.persistence.*;
+import java.time.LocalDateTime;
+
+@Entity
+@Table(name = "tareas")
+public class Tarea {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    @Column(nullable = false)
+    private String titulo;
+    private String descripcion;
+    private String estado;
+    private Integer prioridad;
+    private LocalDateTime fechaCreacion = LocalDateTime.now();
+
+    public Long getId() {
+        return id;
+    }
+    public void setId(Long id) {
+        this.id = id;
+    }
+    public String getTitulo() {
+        return titulo;
+    }
+    public void setTitulo(String titulo) {
+        this.titulo = titulo;
+    }
+    public String getDescripcion() {
+        return descripcion;
+    }
+    public void setDescripcion(String descripcion) {
+        this.descripcion = descripcion;
+    }
+    public String getEstado() {
+        return estado;
+    }
+
+    public void setEstado(String estado) {
+        this.estado = estado;
+    }
+    public Integer getPrioridad() {
+        return prioridad;
+    }
+    public void setPrioridad(Integer prioridad) {
+        this.prioridad = prioridad;
+    }
+    public LocalDateTime getFechaCreacion() {
+        return fechaCreacion;
+    }
+    public void setFechaCreacion(LocalDateTime fechaCreacion) {
+        this.fechaCreacion = fechaCreacion;
+    }
+}
+
+
+================================================================================
+RUTA DEL ARCHIVO: src\main\java\com\example\lab1mvc\repository\TareaRepository.java
+================================================================================
+
+package com.example.lab1mvc.repository;
+
+import com.example.lab1mvc.model.Tarea;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.stereotype.Repository;
+import java.util.List;
+
+@Repository
+public interface TareaRepository extends JpaRepository<Tarea, Long> {
+
+    List<Tarea> findByEstado(String estado);
+
+    @Query("SELECT t FROM Tarea t WHERE t.prioridad > 3")
+    List<Tarea> findTareasPrioritarias();
+}
+
+
+================================================================================
+RUTA DEL ARCHIVO: src\main\java\com\example\lab1mvc\service\TareaService.java
+================================================================================
+
+package com.example.lab1mvc.service;
+
+import com.example.lab1mvc.dto.TareaDTO;
+import com.example.lab1mvc.model.Tarea;
+import com.example.lab1mvc.repository.TareaRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+@Service
+public class TareaService {
+
+    @Autowired
+    private TareaRepository repository;
+
+    public List<Tarea> listarTodas() {
+        return repository.findAll();
+    }
+
+    public Tarea crearTarea(TareaDTO dto) {
+        Tarea tarea = new Tarea();
+        tarea.setTitulo(dto.getTitulo());
+        tarea.setDescripcion(dto.getDescripcion());
+        tarea.setEstado(dto.getEstado());
+        tarea.setPrioridad(dto.getPrioridad());
+        return repository.save(tarea);
+    }
+
+    public List<Tarea> buscarPorEstado(String estado) {
+        return repository.findByEstado(estado);
+    }
+
+    public Tarea actualizar(Long id, TareaDTO dto) {
+        Tarea tareaExistente = repository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Tarea no encontrada con id: " + id));
+
+        tareaExistente.setTitulo(dto.getTitulo());
+        tareaExistente.setDescripcion(dto.getDescripcion());
+        tareaExistente.setEstado(dto.getEstado());
+        tareaExistente.setPrioridad(dto.getPrioridad());
+
+        return repository.save(tareaExistente);
+    }
+
+    public void eliminar(Long id) {
+        if (!repository.existsById(id)) {
+            throw new RuntimeException("No se puede eliminar: Tarea no encontrada");
+        }
+        repository.deleteById(id);
+    }
+
+    public Map<String, Long> obtenerResumenPorEstado() {
+        return repository.findAll().stream()
+                .collect(Collectors.groupingBy(Tarea::getEstado, Collectors.counting()));
+    }
+
+    public Tarea obtenerPorId(Long id) {
+        return repository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Tarea no encontrada")); // Esto activará el error 404 si no existe [cite: 151]
+    }
+}
+
+
+================================================================================
+RUTA DEL ARCHIVO: src\main\resources\application-prod.properties
+================================================================================
+
+spring.datasource.url=jdbc:postgresql://localhost:5432/tareasdb
+spring.datasource.username=admin
+spring.datasource.password=admin123
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.show-sql=true
+spring.jpa.database-platform=org.hibernate.dialect.PostgreSQLDialect
+server.port=8081
+
+
+================================================================================
+RUTA DEL ARCHIVO: src\main\resources\application.properties
+================================================================================
+
+spring.profiles.active=prod
+
+
+================================================================================
+RUTA DEL ARCHIVO: src\test\java\com\example\lab1mvc\Lab1mvcApplicationTests.java
+================================================================================
+
+package com.example.lab1mvc;
+
+import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.context.SpringBootTest;
+
+@SpringBootTest
+class Lab1mvcApplicationTests {
+
+	@Test
+	void contextLoads() {
+	}
+
+}
+
+
