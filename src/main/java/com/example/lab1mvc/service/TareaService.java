@@ -66,4 +66,4 @@ public class TareaService {
     public Page<Tarea> listarPaginado(int page, int size) {
         return repository.findAll(PageRequest.of(page, size));
     }
-}
+}   
